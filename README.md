@@ -78,6 +78,8 @@ $(document).ready(function () {
 | **headerIsFollowedByDivider** | bool | Controls if a divider is automatically added next to the header. (Ignored, if header is set to `false`.)                                                                      | `false`     |
 | **showStaticOptions** | bool | Whether or not to display `static` items in the context menu                                                                      | `false`      |
 | **startsNewSelection** | bool | Whether or not to start a new selection (deselect other rows) when `isMulti` is `true` and a non-selected row is right-clicked | `false`      |
+| **triggerButtonSelector**  | string                      | The CSS selector of the element that will trigger the context menu to appear when clicked. Typically, this can be an icon within one of the table cells per row. E.g. `hover-icon` from `<i class="hover-icon fa-fw fa-solid fa-ellipsis-vertical"></i>` <br><br> This is used to set up click listening for the related clicks. | `undefined` |
+
 
 ## options.buttonList
 
@@ -138,6 +140,6 @@ $(document).ready(function () {
 # Development & Building:
 - Launch the included VSCode workspace file (`datatables-contextual-actions.code-workspace`)
 - Run `npm i` to install any dependencies
-- Perform any development and test in the `~/index.html` and `~/index_noheader.html` files
+- Perform any development and test in the `~/index.html` file
 - When you're ready to build, execute the default build task (`Ctrl + Shift + B`)
-- Test the built changes in the `~/docs/index.html` documentation/demo file
+- Note, that the `index.html` file in the `docs` folder is also updated with the latest build, but the `index_simple.html` file needs to be manually updated if you want to test and demonstrate the plugin in a simpler setting

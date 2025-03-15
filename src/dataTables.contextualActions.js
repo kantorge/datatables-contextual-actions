@@ -113,15 +113,24 @@ jQuery.fn.dataTable.Api.register('contextualActions()', function (options) {
 			this.dt = table;
 			this.table = $(this.dt.container()).find('table');
 
-			// Ensure that clicks outside of the context menu dismiss it
-			$(window).click(function (e) {
-				if (
-					$('#' + _ca.contextMenuId).is(':visible') && // If the context menu is visible
-					!$(e.target).closest('.dropdown-menu').length // And you're not clicking inside of the context menu
-				) {
-					// Then hide it
-					hideContextMenu();
+			// Ensure that clicks outside of the context menu dismiss it, excluding clicks on the elements used to open it
+			$(window).on('click', function (e) {
+        // If the context menu is not visible, do nothing
+				if (!$('#' + _ca.contextMenuId).is(':visible')) {
+          return;
+        }
+				// If the click was inside the context menu, do nothing
+        if ($(e.target).closest('.dropdown-menu').length) {
+          return;
+        }
+				// If the trigger element is defined and the click was on it, do nothing
+				if (options.contextMenu.triggerButtonSelector !== undefined) {
+					if (e.target.matches(options.contextMenu.triggerButtonSelector) || e.target.closest(options.contextMenu.triggerButtonSelector)) {
+						return;
+					}
 				}
+
+        hideContextMenu();
 			});
 
 			// Context menu state
@@ -135,7 +144,7 @@ jQuery.fn.dataTable.Api.register('contextualActions()', function (options) {
 			var me = this;
 
 			// Handle row right-clicks
-			$(this.table).on('contextmenu', 'tr', function (e) {
+			$(this.table).on('contextmenu', 'tr', function (e, params) {
 				var node = this;
 				var deslectAllRowsFirst = () => _ca.table.DataTable().rows().deselect();
 				// Deselect all rows if multi is not enabled for the contextmenu
@@ -186,14 +195,26 @@ jQuery.fn.dataTable.Api.register('contextualActions()', function (options) {
 				me.rightClickedRowData = data;
 
 				// Show context menu at mouse position
-				showContextMenuAt(e.pageX, e.pageY);
+				// If this value is not available in the event, use the position from the triggering element
+				showContextMenuAt(
+					e.pageX === undefined ? params.x : e.pageX,
+					e.pageY === undefined ? params.y : e.pageY
+				);
 
 				// Return false to prevent the browser context menu from appearing
 				return false;
 			});
 
+			// The context menu should be also pulled up when the user clicks the vertical ellipsis icon
+			if (typeof options.contextMenu.triggerButtonSelector === 'string') {
+				$(document).on('click', '.hover-icon', function (event) {
+					event.preventDefault();
+					$(this).closest('tr').trigger('contextmenu', {x: event.pageX, y: event.pageY});
+				});
+			}
+
 			// Bind to row selection
-			this.dt.on('select', function (e, dt, type, indexes) {
+			this.dt.on('select', function (_e, dt, type, _indexes) {
 				if (type === 'row') {
 					// Set selected rows
 					var selectedRowIndexes = dt
@@ -209,7 +230,7 @@ jQuery.fn.dataTable.Api.register('contextualActions()', function (options) {
 			});
 
 			// Bind to deselection
-			this.dt.on('deselect', function (e, dt, type, indexes) {
+			this.dt.on('deselect', function (_e, dt, type, _indexes) {
 				if (type === 'row') {
 					var selectedRowIndexes = dt
 						.rows({ selected: true })
@@ -313,7 +334,7 @@ jQuery.fn.dataTable.Api.register('contextualActions()', function (options) {
 			const viewportPaddingInPixels = 20;
 
 			// Check if it's extending past the height of the viewport
-			var contextMenuBounding = $('#' + _ca.contextMenuId).get(0).getBoundingClientRect();
+			var contextMenuBounding = $('#' + _ca.contextMenuId).get(0)?.getBoundingClientRect() || {bottom: 0, right: 0};
 			var viewportBottom = window.innerHeight;
 			var viewportRight =  document.body.clientWidth;
 

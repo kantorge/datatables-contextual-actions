@@ -14,7 +14,7 @@ var distFolder = dir + '/dist/';
 // Minification
 var code = fs.readFileSync(sourceFolder + scriptFileName + '.js', 'utf8');
 var uglifiedCode = UglifyJS.minify(
-		code, 
+		code,
 		{
 		    mangle: {
 		        toplevel: true,
@@ -39,7 +39,7 @@ fs.writeFile(distFolder + scriptFileName + '.min.js', uglifiedCode , function (e
 		console.log(err);
 	} else {
 		console.log('Minified javascript saved');
-	}      
+	}
 });
 
 // Create the CSS
@@ -48,14 +48,14 @@ fs.writeFile(distFolder + cssFileName + '.min.css', uglifiedCss , function (err)
 		console.log(err);
 	} else {
 		console.log('Minified css saved');
-	}      
+	}
 });
 
 // Copy over the index.html documentation to /docs/ with the script path replaced to use /dist/
 fs.mkdir('./docs/', { recursive: true }, (err) => {if(err) throw err});
 fs.copyFile('index.html', 'docs/index.html', (err) => {
-  	if (err) throw err;
-  	
+  if (err) throw err;
+
 	// Replace script path
 	replace({
 		files: 'docs/index.html',
@@ -63,17 +63,23 @@ fs.copyFile('index.html', 'docs/index.html', (err) => {
  		to: `src="../dist/dataTables.contextualActions.min.js"`,
 	})
 	.then(() => {
-		
 		// Replace style path
-		replace({ 
+		replace({
 			files: 'docs/index.html',
 			from: `href="./src/dataTables.contextualActions.css"`,
 			to: `href="../dist/dataTables.contextualActions.min.css"`,
 		})
 		.then(() => {
+			// Replace the sample data file path
+			replace({
+				files: 'docs/index.html',
+				from: `src="docs/sampleData.js"`,
+				to: `src="sampleData.js"`,
+			})
+		})
+		.then(() => {
 			console.log('/docs/index.html built successfully');
 		});
-
 	});
 
 });
