@@ -111,7 +111,13 @@ jQuery.fn.dataTable.Api.register('contextualActions()', function (options) {
 		init: function (options) {
 			// Set up references
 			this.dt = table;
-			this.table = $(this.dt.container()).find('table');
+			// `.container().find('table')` also picks up the header/footer clone <table>
+			// elements DataTables renders when `scrollY`/`scrollX` is enabled, none of which
+			// are ever passed through `.DataTable()`. Later code calls `this.table.DataTable()`
+			// on every context-menu open, which then *initializes* those untouched clones as
+			// brand new, default-configured DataTables instances, visibly duplicating the
+			// table's controls. `.table().node()` always resolves to the one real table.
+			this.table = $(this.dt.table().node());
 
 			// Ensure that clicks outside of the context menu dismiss it, excluding clicks on the elements used to open it
 			$(window).on('click', function (e) {
